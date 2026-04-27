@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Esprit Critique">
+<meta name="theme-color" content="#0a0a0f">
+<title>Esprit Critique — 6 mois</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #13131a;
+  --surface2: #1c1c26;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #f0eff8;
+  --muted: #7b7a90;
+  --accent: #8b7cf8;
+  --accent2: #5ee7b4;
+  --accent3: #f87c7c;
+  --gold: #e8c97e;
+  --serif: 'DM Serif Display', Georgia, serif;
+  --mono: 'DM Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); overflow: hidden; }
+
+/* Layout shell */
+.shell { display: flex; flex-direction: column; height: 100dvh; height: 100vh; }
+.statusbar { height: calc(var(--safe-top) + 0px); background: var(--bg); flex-shrink: 0; }
+.content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+.bottombar { flex-shrink: 0; padding-bottom: var(--safe-bottom); background: var(--surface); border-top: 0.5px solid var(--border2); }
+
+/* Screens */
+.screen { display: none; min-height: 100%; }
+.screen.active { display: block; }
+
+/* Nav */
+.nav { display: flex; justify-content: space-around; padding: 10px 0 6px; }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 4px 16px; border-radius: 12px; transition: all 0.18s; }
+.nav-item.active { background: rgba(139,124,248,0.12); }
+.nav-icon { font-size: 20px; }
+.nav-label { font-size: 10px; font-weight: 500; color: var(--muted); letter-spacing: 0.04em; }
+.nav-item.active .nav-label { color: var(--accent); }
+
+/* Hero header */
+.hero { padding: 24px 20px 20px; }
+.hero-date { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+.hero-title { font-family: var(--serif); font-size: 28px; line-height: 1.2; color: var(--text); }
+.hero-title em { color: var(--accent); font-style: italic; }
+.hero-sub { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+
+/* Cards */
+.card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 16px; margin: 0 16px 12px; }
+.card-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
+.card-title { font-size: 15px; font-weight: 500; color: var(--text); line-height: 1.4; }
+.card-sub { font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+
+/* Progress ring */
+.progress-section { padding: 0 16px 16px; display: flex; gap: 10px; }
+.prog-card { flex: 1; background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 14px; text-align: center; }
+.prog-num { font-family: var(--serif); font-size: 26px; color: var(--accent); }
+.prog-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* Phase badge */
+.phase-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 500; font-family: var(--mono); }
+.badge-purple { background: rgba(139,124,248,0.15); color: var(--accent); border: 0.5px solid rgba(139,124,248,0.3); }
+.badge-teal { background: rgba(94,231,180,0.12); color: var(--accent2); border: 0.5px solid rgba(94,231,180,0.25); }
+.badge-coral { background: rgba(248,124,124,0.12); color: var(--accent3); border: 0.5px solid rgba(248,124,124,0.25); }
+
+/* Today tasks */
+.task-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-bottom: 0.5px solid var(--border); cursor: pointer; transition: background 0.15s; }
+.task-item:last-child { border-bottom: none; }
+.task-item:active { background: var(--surface2); }
+.task-check { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border2); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.task-check.done { background: var(--accent); border-color: var(--accent); }
+.task-check.done::after { content: '✓'; font-size: 12px; color: #fff; font-weight: 500; }
+.task-body { flex: 1; }
+.task-title { font-size: 14px; color: var(--text); line-height: 1.45; }
+.task-title.done { text-decoration: line-through; color: var(--muted); }
+.task-meta { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: var(--mono); }
+.task-time { font-family: var(--mono); font-size: 11px; color: var(--muted); flex-shrink: 0; }
+
+/* Sources */
+.source-item { display: flex; align-items: center; gap: 10px; padding: 13px 16px; border-bottom: 0.5px solid var(--border); text-decoration: none; transition: background 0.15s; }
+.source-item:last-child { border-bottom: none; }
+.source-item:active { background: var(--surface2); }
+.source-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.src-book { background: rgba(139,124,248,0.15); }
+.src-web { background: rgba(94,231,180,0.12); }
+.src-podcast { background: rgba(248,124,124,0.12); }
+.src-course { background: rgba(232,201,126,0.12); }
+.source-body { flex: 1; }
+.source-title { font-size: 13px; font-weight: 500; color: var(--text); }
+.source-type { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+.source-arrow { color: var(--muted); font-size: 14px; }
+
+/* Weekly view */
+.week-strip { display: flex; gap: 6px; padding: 0 16px 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.week-strip::-webkit-scrollbar { display: none; }
+.day-chip { flex-shrink: 0; width: 44px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; border-radius: 14px; cursor: pointer; border: 0.5px solid var(--border); background: var(--surface); transition: all 0.15s; }
+.day-chip.today { background: var(--accent); border-color: var(--accent); }
+.day-chip.done-day { border-color: var(--accent2); }
+.day-name { font-size: 10px; font-family: var(--mono); color: var(--muted); }
+.day-chip.today .day-name { color: rgba(255,255,255,0.7); }
+.day-num { font-size: 15px; font-weight: 500; color: var(--text); }
+.day-chip.today .day-num { color: #fff; }
+.day-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent2); opacity: 0; }
+.day-chip.done-day .day-dot { opacity: 1; }
+
+/* Tracker bars */
+.tracker-row { margin-bottom: 16px; }
+.tracker-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.tracker-name { font-size: 13px; color: var(--text); }
+.tracker-val { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.tracker-bar { height: 5px; background: var(--surface2); border-radius: 10px; overflow: hidden; }
+.tracker-fill { height: 100%; border-radius: 10px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+.fill-purple { background: var(--accent); }
+.fill-teal { background: var(--accent2); }
+.fill-gold { background: var(--gold); }
+
+/* Biais grid */
+.biais-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 0 16px 12px; }
+.biais-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 14px; padding: 14px; cursor: pointer; transition: all 0.18s; }
+.biais-card.known { border-color: rgba(94,231,180,0.4); background: rgba(94,231,180,0.06); }
+.biais-card:active { transform: scale(0.97); }
+.biais-name { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.3; }
+.biais-card.known .biais-name { color: var(--accent2); }
+.biais-desc { font-size: 11px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+.biais-known-badge { font-size: 10px; font-family: var(--mono); color: var(--accent2); margin-top: 6px; }
+
+/* Journal */
+.journal-entry { background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 16px; margin: 0 16px 12px; }
+.journal-date { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+.journal-prompt { font-size: 13px; color: var(--muted); font-style: italic; line-height: 1.5; margin-bottom: 10px; }
+.journal-textarea { width: 100%; background: var(--surface2); border: 0.5px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--sans); font-size: 14px; padding: 12px; resize: none; min-height: 100px; outline: none; line-height: 1.6; }
+.journal-textarea:focus { border-color: var(--accent); }
+.journal-save { width: 100%; margin-top: 10px; padding: 12px; border-radius: 10px; background: var(--accent); border: none; color: #fff; font-family: var(--sans); font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+.journal-save:active { opacity: 0.8; }
+.past-entry { background: var(--surface); border: 0.5px solid var(--border); border-radius: 14px; padding: 14px; margin: 0 16px 10px; }
+.past-entry-date { font-family: var(--mono); font-size: 10px; color: var(--accent); margin-bottom: 6px; }
+.past-entry-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* Section header */
+.section-hd { padding: 20px 16px 10px; display: flex; align-items: center; justify-content: space-between; }
+.section-hd-title { font-family: var(--serif); font-size: 20px; color: var(--text); }
+.section-hd-badge { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+/* Streak flame */
+.streak-row { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: rgba(232,201,126,0.08); border-radius: 14px; margin: 0 16px 16px; border: 0.5px solid rgba(232,201,126,0.2); }
+.streak-icon { font-size: 22px; }
+.streak-text { font-size: 14px; font-weight: 500; color: var(--gold); }
+.streak-sub { font-size: 12px; color: var(--muted); }
+
+/* Scrollable section */
+.scroll-section { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.scroll-section::-webkit-scrollbar { display: none; }
+
+/* Divider label */
+.divider-label { padding: 6px 16px; font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* Pill row */
+.pill-row { display: flex; gap: 6px; padding: 0 16px 14px; flex-wrap: wrap; }
+.pill { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-family: var(--mono); border: 0.5px solid var(--border2); color: var(--muted); cursor: pointer; transition: all 0.15s; }
+.pill.active-pill { background: rgba(139,124,248,0.15); color: var(--accent); border-color: rgba(139,124,248,0.35); }
+
+/* Empty state */
+.empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+.empty-icon { font-size: 32px; margin-bottom: 12px; }
+
+/* Animated entrance */
+@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+.fadein { animation: fadeUp 0.35s ease both; }
+.fadein-d1 { animation-delay: 0.05s; }
+.fadein-d2 { animation-delay: 0.1s; }
+.fadein-d3 { animation-delay: 0.15s; }
+
+/* Modal */
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: flex-end; }
+.modal-bg.open { display: flex; }
+.modal { background: var(--surface); border-radius: 24px 24px 0 0; padding: 20px; padding-bottom: calc(20px + var(--safe-bottom)); width: 100%; max-height: 85dvh; overflow-y: auto; }
+.modal-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 16px; }
+.modal-title { font-family: var(--serif); font-size: 20px; margin-bottom: 6px; }
+.modal-body { font-size: 14px; color: var(--muted); line-height: 1.7; }
+.modal-close { width: 100%; margin-top: 16px; padding: 13px; border-radius: 14px; background: var(--surface2); border: 0.5px solid var(--border); color: var(--text); font-family: var(--sans); font-size: 14px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="statusbar"></div>
+  <div class="content" id="content">
+
+    <!-- AUJOURD'HUI -->
+    <div class="screen active" id="screen-today">
+      <div class="hero fadein">
+        <div class="hero-date" id="today-date">Lundi 27 avril 2026</div>
+        <div class="hero-title">Bonne journée,<br><em>Semaine 1</em></div>
+        <div class="hero-sub">Phase 1 — Biais cognitifs &amp; pensée lente</div>
+      </div>
+
+      <div class="progress-section fadein fadein-d1">
+        <div class="prog-card">
+          <div class="prog-num" id="day-count">1</div>
+          <div class="prog-label">Jour / 180</div>
+        </div>
+        <div class="prog-card">
+          <div class="prog-num" id="done-count">0</div>
+          <div class="prog-label">Tâches faites</div>
+        </div>
+        <div class="prog-card">
+          <div class="prog-num" id="streak-count">0</div>
+          <div class="prog-label">Jours de suite</div>
+        </div>
+      </div>
+
+      <div class="streak-row fadein fadein-d2" id="streak-row" style="display:none">
+        <span class="streak-icon">🔥</span>
+        <div>
+          <div class="streak-text" id="streak-text">3 jours de suite</div>
+          <div class="streak-sub">Continue comme ça !</div>
+        </div>
+      </div>
+
+      <div class="card fadein fadein-d2">
+        <div class="card-label">Phase actuelle</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span class="phase-badge badge-purple">Mois 1–2</span>
+        </div>
+        <div class="card-title">Biais cognitifs &amp; argumentation</div>
+        <div class="card-sub">Nettoyer la machine avant de l'affûter.</div>
+      </div>
+
+      <div class="section-hd fadein fadein-d3">
+        <div class="section-hd-title">Tâches du jour</div>
+        <div class="section-hd-badge" id="tasks-progress">0/3</div>
+      </div>
+
+      <div id="tasks-list" class="fadein fadein-d3">
+        <!-- generated by JS -->
+      </div>
+
+      <div class="section-hd">
+        <div class="section-hd-title">Sources du jour</div>
+      </div>
+      <div id="sources-today" style="margin:0 16px 20px;background:var(--surface);border:0.5px solid var(--border);border-radius:16px;overflow:hidden;">
+        <!-- generated by JS -->
+      </div>
+    </div>
+
+    <!-- PLANNING -->
+    <div class="screen" id="screen-plan">
+      <div class="hero fadein">
+        <div class="hero-date">Planning 6 mois</div>
+        <div class="hero-title">Semaine <em>par semaine</em></div>
+      </div>
+
+      <div class="week-strip fadein" id="week-strip">
+        <!-- generated by JS -->
+      </div>
+
+      <div id="week-detail">
+        <!-- generated by JS -->
+      </div>
+    </div>
+
+    <!-- SOURCES -->
+    <div class="screen" id="screen-sources">
+      <div class="hero fadein">
+        <div class="hero-date">Bibliothèque</div>
+        <div class="hero-title">Toutes les <em>sources</em></div>
+      </div>
+
+      <div class="pill-row fadein" id="source-filters">
+        <span class="pill active-pill" onclick="filterSources('all',this)">Toutes</span>
+        <span class="pill" onclick="filterSources('book',this)">Livres</span>
+        <span class="pill" onclick="filterSources('web',this)">Web</span>
+        <span class="pill" onclick="filterSources('podcast',this)">Podcasts</span>
+        <span class="pill" onclick="filterSources('course',this)">Cours</span>
+      </div>
+
+      <div id="sources-list" style="margin:0 16px 20px;background:var(--surface);border:0.5px solid var(--border);border-radius:16px;overflow:hidden;">
+        <!-- generated by JS -->
+      </div>
+    </div>
+
+    <!-- TRACKER -->
+    <div class="screen" id="screen-tracker">
+      <div class="hero fadein">
+        <div class="hero-date">Progression</div>
+        <div class="hero-title">Mon <em>tracker</em></div>
+      </div>
+
+      <div class="card fadein">
+        <div class="card-label">Avancement global</div>
+        <div class="tracker-row" style="margin-top:8px;">
+          <div class="tracker-label"><span class="tracker-name">Phase 1 — Biais &amp; logique</span><span class="tracker-val" id="p1-val">0%</span></div>
+          <div class="tracker-bar"><div class="tracker-fill fill-purple" id="p1-bar" style="width:0%"></div></div>
+        </div>
+        <div class="tracker-row">
+          <div class="tracker-label"><span class="tracker-name">Phase 2 — Épistémologie</span><span class="tracker-val" id="p2-val">0%</span></div>
+          <div class="tracker-bar"><div class="tracker-fill fill-teal" id="p2-bar" style="width:0%"></div></div>
+        </div>
+        <div class="tracker-row">
+          <div class="tracker-label"><span class="tracker-name">Phase 3 — Maîtrise</span><span class="tracker-val" id="p3-val">0%</span></div>
+          <div class="tracker-bar"><div class="tracker-fill fill-gold" id="p3-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div class="card fadein fadein-d1">
+        <div class="card-label">Anki — biais maîtrisés</div>
+        <div style="display:flex;align-items:baseline;gap:6px;margin-top:4px;">
+          <span style="font-family:var(--serif);font-size:36px;color:var(--accent)" id="anki-count">0</span>
+          <span style="color:var(--muted);font-size:14px;">/ 25 biais</span>
+        </div>
+        <div class="tracker-bar" style="margin-top:10px;height:6px;">
+          <div class="tracker-fill fill-purple" id="anki-bar" style="width:0%"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;" id="anki-dots">
+        </div>
+      </div>
+
+      <div class="section-hd">
+        <div class="section-hd-title">Biais &amp; sophismes</div>
+        <div class="section-hd-badge">Appuyer = maîtrisé</div>
+      </div>
+      <div class="biais-grid" id="biais-grid">
+        <!-- generated by JS -->
+      </div>
+    </div>
+
+    <!-- JOURNAL -->
+    <div class="screen" id="screen-journal">
+      <div class="hero fadein">
+        <div class="hero-date">Réflexion</div>
+        <div class="hero-title">Journal <em>réflexif</em></div>
+      </div>
+
+      <div class="journal-entry fadein">
+        <div class="journal-date" id="journal-today-date">Aujourd'hui</div>
+        <div class="journal-prompt" id="journal-prompt">"Quel biais ai-je reconnu cette semaine dans mon travail ?"</div>
+        <textarea class="journal-textarea" id="journal-input" placeholder="Écris ici ta réflexion du jour..."></textarea>
+        <button class="journal-save" onclick="saveJournal()">Enregistrer l'entrée</button>
+      </div>
+
+      <div class="section-hd">
+        <div class="section-hd-title">Entrées passées</div>
+      </div>
+      <div id="journal-entries">
+        <!-- generated by JS -->
+      </div>
+    </div>
+
+  </div><!-- end content -->
+
+  <div class="bottombar">
+    <nav class="nav">
+      <div class="nav-item active" onclick="showScreen('today',this)">
+        <span class="nav-icon">◉</span>
+        <span class="nav-label">Aujourd'hui</span>
+      </div>
+      <div class="nav-item" onclick="showScreen('plan',this)">
+        <span class="nav-icon">▦</span>
+        <span class="nav-label">Planning</span>
+      </div>
+      <div class="nav-item" onclick="showScreen('sources',this)">
+        <span class="nav-icon">⊞</span>
+        <span class="nav-label">Sources</span>
+      </div>
+      <div class="nav-item" onclick="showScreen('tracker',this)">
+        <span class="nav-icon">◈</span>
+        <span class="nav-label">Tracker</span>
+      </div>
+      <div class="nav-item" onclick="showScreen('journal',this)">
+        <span class="nav-icon">✦</span>
+        <span class="nav-label">Journal</span>
+      </div>
+    </nav>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-body" id="modal-body"></div>
+    <button class="modal-close" onclick="closeModal()">Fermer</button>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+const PHASES = [
+  { id:1, label:'Phase 1', name:'Biais cognitifs', color:'purple', months:'Mois 1–2', weeks:[1,2,3,4,5,6,7,8] },
+  { id:2, label:'Phase 2', name:'Épistémologie & médias', color:'teal', months:'Mois 3–4', weeks:[9,10,11,12,13,14,15,16] },
+  { id:3, label:'Phase 3', name:'Maîtrise & production', color:'coral', months:'Mois 5–6', weeks:[17,18,19,20,21,22,23,24] },
+];
+
+const WEEKS = [
+  { w:1, title:'Cartographier ses propres biais', phase:1,
+    days:[
+      { day:'Lun', task:'Lire Kahneman chap. 1–5 (Système 1 vs 2)', time:'30 min', source:'kahneman' },
+      { day:'Mar', task:'Test IAT — biais implicites (implicit.harvard.edu)', time:'20 min', source:'iat' },
+      { day:'Mer', task:'Créer deck Anki — 5 premiers biais', time:'25 min', source:'anki' },
+      { day:'Jeu', task:'Kahneman chap. 6–10 + noter 1 biais vécu chez IBM', time:'30 min', source:'kahneman' },
+      { day:'Ven', task:'Journal S1 : "Dans quelles situations ai-je mal raisonné ?"', time:'15 min', source:'journal' },
+    ]},
+  { w:2, title:'Biais sociaux & professionnels', phase:1,
+    days:[
+      { day:'Lun', task:'Kahneman chap. 11–17 — biais de groupe', time:'30 min', source:'kahneman' },
+      { day:'Mar', task:'Dobelli — 3 chapitres sur les biais pro', time:'25 min', source:'dobelli' },
+      { day:'Mer', task:'Exercice : analyser un mail collectif IBM avec grille biais', time:'20 min', source:'journal' },
+      { day:'Jeu', task:'+5 cartes Anki + écouter Your Brain at Work', time:'30 min', source:'ybaw' },
+      { day:'Ven', task:'Journal S2 : "Quel biais a influencé une décision cette semaine ?"', time:'15 min', source:'journal' },
+    ]},
+  { w:3, title:'Biais de jugement & probabilités', phase:1,
+    days:[
+      { day:'Lun', task:'Kahneman chap. 18–26 — théorie des perspectives', time:'35 min', source:'kahneman' },
+      { day:'Mar', task:'Exercice taxi cab problem + 5 problèmes probabilité', time:'20 min', source:'decisionlab' },
+      { day:'Mer', task:'Dobelli — 5 chapitres erreurs de probabilité', time:'25 min', source:'dobelli' },
+      { day:'Jeu', task:'+5 cartes Anki + appliquer prémortem à un projet IBM', time:'30 min', source:'anki' },
+      { day:'Ven', task:'Journal S3 : "Où ai-je surestimé une probabilité ?"', time:'15 min', source:'journal' },
+    ]},
+  { w:4, title:'Synthèse — Carte mentale des biais', phase:1,
+    days:[
+      { day:'Lun', task:'Finir Kahneman chap. 27–38 + conclusion', time:'35 min', source:'kahneman' },
+      { day:'Mar', task:'Révision Anki intensive — 20 biais en mode test', time:'25 min', source:'anki' },
+      { day:'Mer', task:'Construire carte mentale des 25 biais (Miro ou papier)', time:'45 min', source:'journal' },
+      { day:'Jeu', task:'Expliquer 5 biais à voix haute à un collègue', time:'20 min', source:'journal' },
+      { day:'Ven', task:'Bilan mois 1 — livrable carte mentale PDF', time:'20 min', source:'journal' },
+    ]},
+  { w:5, title:'Logique formelle & sophismes', phase:1,
+    days:[
+      { day:'Lun', task:'MIT OpenCourseWare Logic — leçons 1–3', time:'30 min', source:'mit' },
+      { day:'Mar', task:'yourlogicalfallacyis.com — 10 premiers sophismes', time:'20 min', source:'fallacy' },
+      { day:'Mer', task:'Formaliser 3 arguments entendus en réunion IBM', time:'25 min', source:'journal' },
+      { day:'Jeu', task:'France Culture Philosophie — 1 épisode rhétorique', time:'30 min', source:'fc' },
+      { day:'Ven', task:'Journal S5 : "Quel sophisme ai-je subi cette semaine ?"', time:'15 min', source:'journal' },
+    ]},
+  { w:6, title:'Rhétorique & persuasion', phase:1,
+    days:[
+      { day:'Lun', task:'Manufacturing Consent — intro + chap. 1', time:'35 min', source:'chomsky' },
+      { day:'Mar', task:'MIT Logic leçons 4–6 — arguments par analogie', time:'30 min', source:'mit' },
+      { day:'Mer', task:'Déconstruire 1 pub ou discours commercial', time:'20 min', source:'journal' },
+      { day:'Jeu', task:'Le Monde + The Economist — même sujet, comparer cadrage', time:'30 min', source:'press' },
+      { day:'Ven', task:'Journal S6 : "Quel argument m\'a convaincu — était-il valide ?"', time:'15 min', source:'journal' },
+    ]},
+  { w:7, title:'Construire & attaquer un argument', phase:1,
+    days:[
+      { day:'Lun', task:'MIT Logic leçons 7–9 — déductif vs inductif vs abductif', time:'30 min', source:'mit' },
+      { day:'Mar', task:'Kialo.com — construire arbre d\'arguments sur un sujet IA', time:'30 min', source:'kialo' },
+      { day:'Mer', task:'Lire Manufacturing Consent chap. 2–3', time:'25 min', source:'chomsky' },
+      { day:'Jeu', task:'Écrire argument thèse/antithèse/synthèse — 300 mots, sujet IBM', time:'30 min', source:'journal' },
+      { day:'Ven', task:'Journal S7 : "Quel argument ai-je construit — quelles failles ?"', time:'15 min', source:'journal' },
+    ]},
+  { w:8, title:'Grille de lecture argumentation', phase:1,
+    days:[
+      { day:'Lun', task:'Révision des 15 sophismes — Anki test à froid', time:'25 min', source:'anki' },
+      { day:'Mar', task:'Construire la grille de lecture — 5 questions clés', time:'35 min', source:'journal' },
+      { day:'Mer', task:'Tester la grille sur 3 textes : presse, rapport IBM, LinkedIn', time:'30 min', source:'press' },
+      { day:'Jeu', task:'Affiner la grille + mise en page PDF Notion/Canva', time:'25 min', source:'journal' },
+      { day:'Ven', task:'Bilan Phase 1 — livrable grille de lecture PDF', time:'20 min', source:'journal' },
+    ]},
+];
+
+const SOURCES = [
+  { id:'kahneman', type:'book', icon:'📖', title:'Thinking, Fast and Slow', author:'Daniel Kahneman', phase:'Phase 1', url:'https://www.amazon.fr/Thinking-Fast-Slow-Daniel-Kahneman/dp/0374533555', desc:'Le livre fondateur sur les biais cognitifs. Système 1 (intuitif) vs Système 2 (analytique). Lit chap. par chap. selon le plan semaine.' },
+  { id:'dobelli', type:'book', icon:'📖', title:'L\'Art de penser clairement', author:'Rolf Dobelli', phase:'Phase 1', url:'https://www.amazon.fr/lart-penser-clairement-Rolf-Dobelli/dp/2253168750', desc:'99 erreurs de pensée courantes, chacune en 2 pages. Idéal pour les pauses déjeuner.' },
+  { id:'chomsky', type:'book', icon:'📖', title:'Manufacturing Consent', author:'Noam Chomsky', phase:'Phase 1', url:'https://www.amazon.fr/Manufacturing-Consent-Political-Economy-Media/dp/0375714499', desc:'Comment les médias construisent le consentement. Modèle en 5 filtres. Lecture semaines 6–7.' },
+  { id:'popper', type:'book', icon:'📖', title:'La logique de la découverte scientifique', author:'Karl Popper', phase:'Phase 2', url:'https://www.amazon.fr/logique-d%C3%A9couverte-scientifique-Karl-Popper/dp/2228881198', desc:'Le falsificationnisme : une théorie qui ne peut pas être réfutée n\'est pas scientifique. Essentiel pour le mois 3.' },
+  { id:'taleb', type:'book', icon:'📖', title:'The Black Swan', author:'Nassim Taleb', phase:'Phase 2', url:'https://www.amazon.fr/Black-Swan-Impact-Highly-Improbable/dp/081297381X', desc:'Les événements rares et imprévisibles qui dominent l\'histoire. Anti-bibliothèque et humilité épistémique.' },
+  { id:'meadows', type:'book', icon:'📖', title:'Thinking in Systems', author:'Donella Meadows', phase:'Phase 3', url:'https://www.amazon.fr/Thinking-Systems-Primer-Donella-Meadows/dp/1603580557', desc:'Voir le monde comme des systèmes avec boucles de rétroaction. Outil clé pour le mois 5.' },
+  { id:'iat', type:'web', icon:'🌐', title:'Test IAT — Biais implicites', author:'Harvard', phase:'Phase 1', url:'https://implicit.harvard.edu/implicit/takeatest.html', desc:'Test scientifique pour mesurer vos associations implicites. Prendre le test "Race IAT" et "Gender-Career IAT".' },
+  { id:'fallacy', type:'web', icon:'🌐', title:'Your Logical Fallacy Is', author:'yourlogicalfallacyis.com', phase:'Phase 1', url:'https://yourlogicalfallacyis.com', desc:'24 sophismes avec illustrations claires. Imprime la poster PDF.' },
+  { id:'decisionlab', type:'web', icon:'🌐', title:'The Decision Lab', author:'thedecisionlab.com', phase:'Phase 1', url:'https://thedecisionlab.com/biases', desc:'Base de données de biais cognitifs avec exemples concrets en business et politique.' },
+  { id:'kialo', type:'web', icon:'🌐', title:'Kialo — Débat structuré', author:'kialo.com', phase:'Phase 1', url:'https://www.kialo.com', desc:'Plateforme de débat en arbre. Construire et attaquer des arguments visuellement.' },
+  { id:'acrimed', type:'web', icon:'🌐', title:'Acrimed — Analyse médias', author:'acrimed.org', phase:'Phase 2', url:'https://www.acrimed.org', desc:'Observatoire des médias français. Analyses critiques de la couverture presse.' },
+  { id:'mit', type:'course', icon:'🎓', title:'Introduction to Logic', author:'MIT OpenCourseWare', phase:'Phase 1', url:'https://ocw.mit.edu/courses/24-241-logic-i-fall-2009/', desc:'Cours MIT complet sur la logique formelle. Gratuit. Faire les leçons 1–9 pendant les semaines 5–7.' },
+  { id:'coursera-think', type:'course', icon:'🎓', title:'Think Again — Argue & Reason', author:'Duke University / Coursera', phase:'Phase 2', url:'https://www.coursera.org/learn/understanding-arguments', desc:'4 MOOCs sur l\'argumentation. Gratuit en audit. Commence au mois 3.' },
+  { id:'sante-fe', type:'course', icon:'🎓', title:'Complexity Explorer', author:'Santa Fe Institute', phase:'Phase 3', url:'https://www.complexityexplorer.org', desc:'Cours sur la pensée complexe et les systèmes. Introduction to Complexity pour le mois 5.' },
+  { id:'ybaw', type:'podcast', icon:'🎧', title:'Your Brain at Work', author:'David Rock', phase:'Phase 1', url:'https://open.spotify.com/show/2mUHFBc1RxBCwSOmYkXlxz', desc:'Neurosciences et performance cognitive. 1 épisode/semaine pendant le mois 1.' },
+  { id:'fc', type:'podcast', icon:'🎧', title:'Philosophie', author:'France Culture', phase:'Phase 1', url:'https://www.radiofrance.fr/franceculture/podcasts/les-chemins-de-la-philosophie', desc:'Les Chemins de la Philosophie. Écouter les épisodes sur la rhétorique, Popper, Morin.' },
+  { id:'press', type:'web', icon:'🌐', title:'The Economist + Le Monde', author:'Presse', phase:'Phase 1-2', url:'https://www.economist.com', desc:'Lire le même sujet dans 2 médias de tradition différente pour analyser le cadrage (framing).' },
+  { id:'anki', type:'web', icon:'🌐', title:'Anki — Répétition espacée', author:'ankiweb.net', phase:'Tout le plan', url:'https://apps.ankiweb.net', desc:'Application de mémorisation espacée. Créer un deck "Biais & Sophismes" dès la semaine 1. iOS app disponible.' },
+];
+
+const BIAIS = [
+  { name:'Système 1 vs 2', desc:'Pensée rapide intuitive vs lente analytique' },
+  { name:'Biais de confirmation', desc:'On cherche ce qui confirme nos croyances' },
+  { name:'Ancrage', desc:'Premier chiffre entendu influence le jugement' },
+  { name:'Disponibilité', desc:'On juge la probabilité selon ce qui vient en tête' },
+  { name:'Halo', desc:'Une qualité rejaillit sur toutes les autres' },
+  { name:'Dunning-Kruger', desc:'Les moins compétents surestiment leurs capacités' },
+  { name:'Survivant', desc:'On ne voit que les succès, pas les échecs invisibles' },
+  { name:'Pensée de groupe', desc:'Conformisme face à la pression collective' },
+  { name:'Aversion perte', desc:'Perdre 100€ fait plus mal que gagner 100€ ne fait plaisir' },
+  { name:'Optimisme', desc:'On sous-estime les risques et délais' },
+  { name:'Planification', desc:'Tout projet prend plus de temps que prévu' },
+  { name:'Hindsight', desc:'"Je le savais depuis le début" — rétrospectivement' },
+  { name:'Ad hominem', desc:'Attaquer la personne plutôt que l\'argument' },
+  { name:'Homme de paille', desc:'Caricaturer la position adverse pour la réfuter facilement' },
+  { name:'Faux dilemme', desc:'Présenter 2 options alors qu\'il en existe d\'autres' },
+  { name:'Pente glissante', desc:'"Si A alors forcément Z" sans démonstration' },
+  { name:'Post hoc', desc:'"Après donc à cause de" — confondre succession et causalité' },
+  { name:'Cherry picking', desc:'Choisir uniquement les données qui confirment la thèse' },
+  { name:'Appel autorité', desc:'Vrai parce que dit par une autorité' },
+  { name:'Appel émotion', desc:'Remplacer argument par émotion (peur, pitié)' },
+  { name:'Généralisation', desc:'Un cas particulier → règle universelle' },
+  { name:'Tu quoque', desc:'"Toi aussi tu fais pareil" — justification par tu aussi' },
+  { name:'Base rate', desc:'Ignorer les probabilités de base dans un raisonnement' },
+  { name:'Gambler\'s fallacy', desc:'Les événements passés influencent les futurs indépendants' },
+  { name:'Biais d\'autorité', desc:'Obéir à une figure d\'autorité sans questionnement' },
+];
+
+const JOURNAL_PROMPTS = [
+  '"Quel biais ai-je reconnu cette semaine dans mon travail ?"',
+  '"Quel argument m\'a convaincu — était-il vraiment valide ?"',
+  '"Où ai-je surestimé ou sous-estimé une probabilité ?"',
+  '"Quelle décision aurait été meilleure avec plus de recul ?"',
+  '"Quel sophisme ai-je utilisé ou subi cette semaine ?"',
+  '"Qu\'est-ce que j\'ai appris que je ne savais pas lundi ?"',
+  '"Dans quel contexte mon Système 1 a pris le dessus ?"',
+  '"Quelle conviction ai-je remise en question cette semaine ?"',
+];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+
+function getState() {
+  const raw = localStorage.getItem('ec_state');
+  if (raw) return JSON.parse(raw);
+  return { tasks:{}, knownBiais:[], journal:[], streak:0, lastDay:null, startDate: new Date().toISOString().slice(0,10) };
+}
+function setState(s) { localStorage.setItem('ec_state', JSON.stringify(s)); }
+
+let state = getState();
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+
+function today() { return new Date().toISOString().slice(0,10); }
+function dayNum() {
+  const start = new Date(state.startDate);
+  const now = new Date();
+  return Math.max(1, Math.floor((now - start) / 86400000) + 1);
+}
+function currentWeek() { return Math.min(Math.ceil(dayNum() / 5), 24); }
+function currentDayIndex() {
+  const d = new Date().getDay();
+  return [1,2,3,4,5,6,0].indexOf(d); // Mon=0, Tue=1...
+}
+function fmt(date) {
+  const d = new Date(date);
+  return d.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+
+// ─── SCREENS ─────────────────────────────────────────────────────────────────
+
+function showScreen(name, el) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('content').scrollTop = 0;
+
+  if (name === 'today') renderToday();
+  if (name === 'plan') renderPlan();
+  if (name === 'sources') renderSources('all');
+  if (name === 'tracker') renderTracker();
+  if (name === 'journal') renderJournal();
+}
+
+// ─── TODAY ───────────────────────────────────────────────────────────────────
+
+function renderToday() {
+  document.getElementById('today-date').textContent = fmt(new Date());
+
+  const dn = dayNum();
+  document.getElementById('day-count').textContent = Math.min(dn, 180);
+
+  const wk = currentWeek();
+  const di = currentDayIndex();
+  const weekData = WEEKS.find(w => w.w === wk) || WEEKS[0];
+  const todayTasks = weekData.days.slice(0, Math.min(3, weekData.days.length));
+  const todayKey = today();
+
+  let doneToday = 0;
+  let html = '<div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;overflow:hidden;margin:0 16px 20px;">';
+  todayTasks.forEach((t, i) => {
+    const key = `${todayKey}_${i}`;
+    const done = state.tasks[key];
+    if (done) doneToday++;
+    html += `<div class="task-item" onclick="toggleTask('${key}', this)">
+      <div class="task-check ${done?'done':''}" id="check-${key}"></div>
+      <div class="task-body">
+        <div class="task-title ${done?'done':''}" id="title-${key}">${t.task}</div>
+        <div class="task-meta">${weekData.w > 0 ? 'Semaine '+weekData.w+' · ' : ''}${t.time}</div>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+
+  document.getElementById('tasks-list').innerHTML = html;
+  document.getElementById('done-count').textContent = doneToday;
+  document.getElementById('tasks-progress').textContent = doneToday + '/' + todayTasks.length;
+
+  const srcs = [...new Set(todayTasks.map(t => t.source))].slice(0, 3);
+  const srcHtml = '<div>' + srcs.map(sid => {
+    const s = SOURCES.find(x => x.id === sid);
+    if (!s) return '';
+    const icons = {book:'src-book',web:'src-web',podcast:'src-podcast',course:'src-course'};
+    return `<a class="source-item" href="${s.url}" target="_blank">
+      <div class="source-icon ${icons[s.type]||'src-web'}">${s.icon}</div>
+      <div class="source-body">
+        <div class="source-title">${s.title}</div>
+        <div class="source-type">${s.author}</div>
+      </div>
+      <span class="source-arrow">›</span>
+    </a>`;
+  }).join('') + '</div>';
+  document.getElementById('sources-today').innerHTML = srcHtml;
+
+  // streak
+  updateStreak();
+  const sc = state.streak || 0;
+  document.getElementById('streak-count').textContent = sc;
+  if (sc >= 2) {
+    document.getElementById('streak-row').style.display = 'flex';
+    document.getElementById('streak-text').textContent = sc + ' jours de suite';
+  }
+}
+
+function toggleTask(key, el) {
+  state.tasks[key] = !state.tasks[key];
+  setState(state);
+  const check = document.getElementById('check-'+key);
+  const title = document.getElementById('title-'+key);
+  check.classList.toggle('done', state.tasks[key]);
+  title.classList.toggle('done', state.tasks[key]);
+  const done = Object.keys(state.tasks).filter(k => k.startsWith(today()) && state.tasks[k]).length;
+  document.getElementById('done-count').textContent = done;
+  renderTracker();
+}
+
+function updateStreak() {
+  const t = today();
+  if (state.lastDay !== t) {
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+    const yKey = yesterday.toISOString().slice(0,10);
+    const hadYesterday = Object.keys(state.tasks).some(k => k.startsWith(yKey) && state.tasks[k]);
+    if (hadYesterday || state.lastDay === yKey) { state.streak = (state.streak||0) + 1; }
+    else if (state.lastDay && state.lastDay < yKey) { state.streak = 1; }
+    state.lastDay = t;
+    setState(state);
+  }
+}
+
+// ─── PLAN ────────────────────────────────────────────────────────────────────
+
+function renderPlan() {
+  const wk = currentWeek();
+
+  // Week strip
+  let strip = '';
+  WEEKS.forEach(w => {
+    const phaseColors = {1:'#8b7cf8',2:'#5ee7b4',3:'#f87c7c'};
+    const color = phaseColors[w.phase] || '#8b7cf8';
+    const isNow = w.w === wk;
+    strip += `<div class="day-chip ${isNow?'today':''}" onclick="showWeekDetail(${w.w})" style="${isNow?'':''}">
+      <div class="day-name" style="color:${isNow?'rgba(255,255,255,0.7)':color};font-size:9px;">S${w.w}</div>
+      <div class="day-num" style="font-size:13px;">${w.w}</div>
+      <div class="day-dot" style="background:${color};opacity:1;"></div>
+    </div>`;
+  });
+  document.getElementById('week-strip').innerHTML = strip;
+  showWeekDetail(wk);
+}
+
+function showWeekDetail(wNum) {
+  const w = WEEKS.find(x => x.w === wNum);
+  if (!w) return;
+  const phaseColors = {1:'badge-purple',2:'badge-teal',3:'badge-coral'};
+
+  let html = `<div style="padding:0 16px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <span class="phase-badge ${phaseColors[w.phase]||'badge-purple'}">Semaine ${w.w}</span>
+    </div>
+    <div style="font-family:var(--serif);font-size:20px;color:var(--text);margin-bottom:4px;">${w.title}</div>
+  </div>
+  <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:16px;overflow:hidden;margin:0 16px 20px;">`;
+
+  w.days.forEach((d, i) => {
+    html += `<div class="task-item" onclick="openSourceModal('${d.source}')">
+      <div style="width:32px;text-align:center;flex-shrink:0;font-size:11px;font-family:var(--mono);color:var(--muted);">${d.day}</div>
+      <div class="task-body">
+        <div class="task-title">${d.task}</div>
+        <div class="task-meta">${d.time}</div>
+      </div>
+      <span style="color:var(--accent);font-size:12px;flex-shrink:0;">›</span>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('week-detail').innerHTML = html;
+}
+
+// ─── SOURCES ─────────────────────────────────────────────────────────────────
+
+function renderSources(filter) {
+  const filtered = filter === 'all' ? SOURCES : SOURCES.filter(s => s.type === filter);
+  const icons = {book:'src-book',web:'src-web',podcast:'src-podcast',course:'src-course'};
+  const html = filtered.map(s => `
+    <a class="source-item" href="${s.url}" target="_blank">
+      <div class="source-icon ${icons[s.type]||'src-web'}">${s.icon}</div>
+      <div class="source-body">
+        <div class="source-title">${s.title}</div>
+        <div class="source-type">${s.author} · ${s.phase}</div>
+      </div>
+      <span class="source-arrow">›</span>
+    </a>`).join('');
+  document.getElementById('sources-list').innerHTML = html;
+}
+
+function filterSources(type, el) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active-pill'));
+  el.classList.add('active-pill');
+  renderSources(type);
+}
+
+// ─── TRACKER ─────────────────────────────────────────────────────────────────
+
+function renderTracker() {
+  const totalTasks = Object.keys(state.tasks).length;
+  const doneTasks = Object.values(state.tasks).filter(Boolean).length;
+
+  const p1Pct = Math.round(Math.min(doneTasks / 40 * 100, 100));
+  const p2Pct = 0;
+  const p3Pct = 0;
+  document.getElementById('p1-val').textContent = p1Pct + '%';
+  document.getElementById('p1-bar').style.width = p1Pct + '%';
+  document.getElementById('p2-val').textContent = p2Pct + '%';
+  document.getElementById('p2-bar').style.width = p2Pct + '%';
+  document.getElementById('p3-val').textContent = p3Pct + '%';
+  document.getElementById('p3-bar').style.width = p3Pct + '%';
+
+  const known = state.knownBiais.length;
+  document.getElementById('anki-count').textContent = known;
+  document.getElementById('anki-bar').style.width = Math.round(known/25*100) + '%';
+
+  // Dots
+  let dots = '';
+  for (let i = 0; i < 25; i++) {
+    const on = i < known;
+    dots += `<div style="width:16px;height:16px;border-radius:50%;background:${on?'var(--accent)':'var(--surface2)'};border:0.5px solid ${on?'var(--accent)':'var(--border2)'}; transition:all 0.2s;"></div>`;
+  }
+  document.getElementById('anki-dots').innerHTML = dots;
+
+  // Biais grid
+  let bgrid = '';
+  BIAIS.forEach((b, i) => {
+    const known = state.knownBiais.includes(i);
+    bgrid += `<div class="biais-card ${known?'known':''}" onclick="toggleBiais(${i})">
+      <div class="biais-name">${b.name}</div>
+      <div class="biais-desc">${b.desc}</div>
+      ${known ? '<div class="biais-known-badge">✓ maîtrisé</div>' : ''}
+    </div>`;
+  });
+  document.getElementById('biais-grid').innerHTML = bgrid;
+}
+
+function toggleBiais(i) {
+  const idx = state.knownBiais.indexOf(i);
+  if (idx >= 0) state.knownBiais.splice(idx, 1);
+  else state.knownBiais.push(i);
+  setState(state);
+  renderTracker();
+}
+
+// ─── JOURNAL ─────────────────────────────────────────────────────────────────
+
+function renderJournal() {
+  document.getElementById('journal-today-date').textContent = fmt(new Date());
+  const prompt = JOURNAL_PROMPTS[new Date().getDay() % JOURNAL_PROMPTS.length];
+  document.getElementById('journal-prompt').textContent = prompt;
+
+  const entries = state.journal || [];
+  if (entries.length === 0) {
+    document.getElementById('journal-entries').innerHTML = '<div class="empty"><div class="empty-icon">✦</div>Pas encore d\'entrées.<br>Commence ta première réflexion.</div>';
+    return;
+  }
+  const html = [...entries].reverse().map(e => `
+    <div class="past-entry">
+      <div class="past-entry-date">${fmt(e.date)}</div>
+      <div class="past-entry-text">${e.text}</div>
+    </div>`).join('');
+  document.getElementById('journal-entries').innerHTML = html;
+}
+
+function saveJournal() {
+  const text = document.getElementById('journal-input').value.trim();
+  if (!text) return;
+  state.journal = state.journal || [];
+  state.journal.push({ date: today(), text });
+  setState(state);
+  document.getElementById('journal-input').value = '';
+  renderJournal();
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+
+function openSourceModal(sid) {
+  const s = SOURCES.find(x => x.id === sid);
+  if (!s) return;
+  document.getElementById('modal-title').textContent = s.title;
+  document.getElementById('modal-body').innerHTML = `
+    <p style="margin-bottom:12px;">${s.desc}</p>
+    <a href="${s.url}" target="_blank" style="display:block;padding:12px;background:var(--surface2);border-radius:10px;color:var(--accent);font-size:13px;text-decoration:none;text-align:center;border:0.5px solid rgba(139,124,248,0.3);">Ouvrir la source ›</a>
+    <p style="margin-top:12px;font-size:12px;color:var(--muted);">${s.author} · ${s.phase}</p>`;
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal-bg') || e.currentTarget.tagName === 'BUTTON') {
+    document.getElementById('modal-bg').classList.remove('open');
+  }
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+
+renderToday();
+</script>
+</body>
+</html>
